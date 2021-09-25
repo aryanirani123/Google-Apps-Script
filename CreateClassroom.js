@@ -18,6 +18,8 @@ function onOpen(){
 
 function ClassData(ClassData){
 
+  console.log("Aryan Irani");
+
   let crs = Classroom.newCourse();
   crs.name = ClassData.name;
   crs.description = ClassData.descr;
