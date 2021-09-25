@@ -14,7 +14,6 @@ function onOpen(){
   const menu = SpreadsheetApp.getUi().createMenu('Custom');
   menu.addItem('Create Clasroom','createClasses');
   menu.addToUi();
-
 }
 
 function ClassData(ClassData){
