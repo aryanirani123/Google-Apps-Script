@@ -9,66 +9,54 @@ The Classes are created provided the following data is present in the Google She
     (4) Description of the Class
 
 */
+OWNER_EMAIL = "aryanirani123@gmail.com"; //Don't forget to update this value with your email address :)
 
 function onOpen(){
-
-  const menu = SpreadsheetApp.getUi().createMenu('Custom');
-  menu.addItem('Create Classroom','createClasses');
-  menu.addToUi();
-
+    const menu = SpreadsheetApp.getUi().createMenu('Custom');
+    menu.addItem('Create Classroom','createClasses');
+    menu.addToUi();
 }
-
-function classroomdata(classname,section,room,descr){
-
-  const ownerEmail = "aryanirani123@gmail.com";
-  const crs = Classroom.newCourse();
-  crs.name = classname;
-  crs.section = section;
-  crs.description = descr;
-  crs.room = room;
-  crs.ownerId = ownerEmail;
-
-  const createdCourse = Classroom.Courses.create(crs);
-  return createdCourse.enrollmentCode;
-  
+function classroomData(properties){
+    
+    const crs = Classroom.newCourse();
+    Object.keys(properties).forEach(key => {
+        Crs[key] = properties[key];
+    })
+    const createdCourse = Classroom.Courses.create(crs);
+    return createdCourse.enrollmentCode;
 }
-
 function createClasses(){
-
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  const sheetName = "Sheet2";
-  const sheet = ss.getSheetByName(sheetName);
-
-  const startRow = 2;
-  const startColumn = 1;
-  const last_Column = 4;
-  const data = sheet.getRange(startRow,startColumn,sheet.getLastRow()-1,last_Column).getValues();
-
-  const enrollmentCodes = [];
-
+    
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const sheet = ss.getActiveSheet();
+    const START_ROW= 2;
+    const START_COLUMN = 1;
+    const LAST_COLUMN= 4;
+    const data = sheet.getRange(
+        START_ROW,
+        START_COLUMN,
+        sheet.getLastRow()-1,
+        LAST_COLUMN).getValues();
+    const enrollmentCodes = [];
     const nameIndex = 0;
     const sectionIndex = 1;
     const roomIndex = 2
     const descriptionIndex = 3;
-
-    const rowStart = 2;
-    const columnStart = 5;
-    const columnLast = 1;
-    
-  data.forEach( row=>{
-    let eCode = classroomdata(  
-
-      name = row[nameIndex],
-      section = row[sectionIndex],
-      room =  row[roomIndex],
-      descr = row[descriptionIndex],
-      
-      );
-
-      enrollmentCodes.push([eCode]);
-
-      sheet.getRange(rowStart,columnStart, enrollmentCodes.length,columnLast).setValues(enrollmentCodes);
-    
-  });
-
+    const START_COLUMN = 5;
+    const LAST_COLUMN = 1;
+    data.forEach(row => {
+        const eCode = classroomData({
+            name: row[nameIndex],
+            section: row[sectionIndex],
+            room: row[roomIndex],
+            description: row[descriptionIndex],
+            ownerId: OWNER_EMAIL
+        });
+        enrollmentCodes.push([eCode]);
+        sheet.getRange(
+            START_ROW,
+            COLUMN_START,
+            enrollmentCodes.length,
+            COLUMN_LAST).setValues(enrollmentCodes);
+    });
 }
