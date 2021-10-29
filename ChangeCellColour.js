@@ -4,9 +4,9 @@
 
 function ChangeColor(){
 
-var sheet = SpreadsheetApp.getActiveSheet();
-var range = sheet.getRange("D1:D10");
-var rule = SpreadsheetApp.newConditionalFormatRule()
+const sheet = SpreadsheetApp.getActiveSheet();
+const range = sheet.getRange("D1:D10");
+const rule = SpreadsheetApp.newConditionalFormatRule()
     .whenNumberLessThan(4)
     .setBackground("red")
     .setRanges([range])
