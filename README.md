@@ -2,8 +2,8 @@
 Collection of Google Apps Script Automation scripts written and compiled by Aryan Irani.
 
 AddGoogleMeet.js - Create Calendar Events with a Google Meet link using Google Apps Script. The Calendar Events contain data from a Google Sheet. 
-                 Blog Link : https://bit.ly/3bw8KsI
-                 Video Tutorial : https://www.youtube.com/watch?v=_pY9eK1V_JA
+Blog Link : https://bit.ly/3bw8KsI
+Video Tutorial : https://www.youtube.com/watch?v=_pY9eK1V_JA
 
 ChangeCellColour.js - Changes colour of cells in Google Sheets using Google Apps Script.If a change is made in the Google Sheet, that meets the conditions 
                       mentioned in the script, the colour of the cell will be changed.
