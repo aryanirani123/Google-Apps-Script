@@ -5,7 +5,7 @@ function onOpen() {
       .addToUi();
 }
 
-var API_key = "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";
+var API_key = "your_api_key";
 
 
 function generateSummary(paragraph){
