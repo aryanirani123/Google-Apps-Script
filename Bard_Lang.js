@@ -1,5 +1,5 @@
 function BARD(sentence,origin_language,target_lanugage) {
-  var apiKey = "AIzaSyBkWRCIRP5kMEhfGFa38PRA10mVc2t8oOE";
+  var apiKey = "your_api_key";
   var apiUrl = "https://generativelanguage.googleapis.com/v1beta2/models/text-bison-001:generateText";
   var url = apiUrl + "?key=" + apiKey;
   var headers = {
