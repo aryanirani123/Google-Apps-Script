@@ -25,7 +25,7 @@ function getSelectedText() {
   return "";
 }
 function sendToGemini(selectedText) {
-  const GEMINI_KEY = 'AIzaSyBiZJcG-pviBRtb8SauUYIQfqaWS2qC8jU';
+  const GEMINI_KEY = 'YOUR_API_KEY';
   const GEMINI_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${GEMINI_KEY}`;
 
   var headers = {
@@ -99,7 +99,7 @@ try {
     Logger.log(conversationScript)
 
     // Cloud Run Call
-    const url1 = 'https://us-central1-project2-283514.cloudfunctions.net/generateaudio';
+    const url1 = 'YOUR_CLOUD_RUN_ENDPOINT';
     var payload1 = {
       'variable': JSON.stringify(conversationScript)
     };
