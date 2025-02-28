@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+  </head>
+  <body>
+    <h1>Generate Content</h1>
+    <h2>Select the text you want to create a script out of</h2>
+    <button type="button" onclick="generateContent()">Generate</button>
+    <script>
+      function generateContent() {
+        google.script.run.withSuccessHandler(function(selectedText) {
+          // You may need to add logic here for voice selection
+          google.script.run.sendToGemini(selectedText);
+        }).getSelectedText();
+      }
+    </script>
+  </body>
+</html>
