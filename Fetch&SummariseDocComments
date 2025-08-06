@@ -1,0 +1,165 @@
+const GEMINI_API_KEY = "AIzaSyCEptKeK84C9RbLNa9Vu9NVRw4bLXGzEcU";
+
+function onOpen() {
+  const ui = DocumentApp.getUi();
+  ui.createMenu('AI Comment Tools')
+      .addItem('Summarize All Comments (Gemini)', 'summarizeDocComments')
+      .addToUi();
+}
+
+/**
+ * Fetches all inline comments from the active Google Doc using the Drive API,
+ * extracts their contextual text using DocumentApp, and returns their combined content.
+ * @returns {string|null} A single string containing formatted comments and their context, or null if no comments are found or an error occurs.
+ */
+function listComments() {
+  const options = {
+    // fields: Requesting 'anchor' field to get startIndex and endIndex.
+    fields: 'comments(id, content, createdTime, author(displayName), resolved, replies(id, content, createdTime, author(displayName)), anchor)'
+  };
+  const documentId = DocumentApp.getActiveDocument().getId();
+  let allCommentsAndContext = '';
+  let commentCount = 0;
+
+  try {
+    const documentBodyText = DocumentApp.getActiveDocument().getBody().getText();
+    const response = Drive.Comments.list(documentId, options);
+    const comments = response.comments;
+
+    if (comments && comments.length > 0) {
+      commentCount = comments.length;
+      comments.forEach(comment => {
+        const author = comment.author ? comment.author.displayName : 'Unknown Author';
+        const commentContent = comment.content || '[No Content]';
+        
+        let contextualText = '';
+        if (comment.anchor && comment.anchor.range) {
+          const range = comment.anchor.range;
+          const startIndex = range.startIndex || 0;
+          const endIndex = range.endIndex || documentBodyText.length;
+          
+          if (startIndex >= 0 && endIndex <= documentBodyText.length && startIndex < endIndex) {
+            contextualText = documentBodyText.substring(startIndex, endIndex).trim();
+          }
+        }
+
+        allCommentsAndContext += `--- Context for Comment by ${author} ---\n`;
+        allCommentsAndContext += `${contextualText || '[No specific text context found]'}\n`;
+        allCommentsAndContext += `--- Comment: ---\n`;
+        allCommentsAndContext += `${commentContent}\n`;
+
+        if (comment.replies && comment.replies.length > 0) {
+          comment.replies.forEach(reply => {
+            const replyAuthor = reply.author ? reply.author.displayName : 'Unknown Author';
+            const replyContent = reply.content || '[No Content]';
+            allCommentsAndContext += `  Reply from ${replyAuthor}: ${replyContent}\n`;
+          });
+        }
+        allCommentsAndContext += `------------------------\n\n`;
+      });
+    } else {
+      Logger.log('No comments found in this document.');
+      return { commentsString: '', count: 0 };
+    }
+  } catch (e) {
+    Logger.log(`Error fetching comments with context (Drive API): ${e.message}`);
+    DocumentApp.getUi().alert('Error', 'Could not retrieve comments. Please check logs and ensure Google Drive API is enabled and authorized.', DocumentApp.getUi().ButtonSet.OK);
+    return { commentsString: '', count: 0 };
+  }
+
+  return { commentsString: allCommentsAndContext, count: commentCount };
+}
+
+
+function summarizeDocComments() {
+  const ui = DocumentApp.getUi();
+
+  // 1. Check API key at the start
+  if (GEMINI_API_KEY === "dssdds" || !GEMINI_API_KEY) {
+    ui.alert('API Key Missing', 'Please replace the placeholder API key with your actual Gemini API key in the script.', ui.ButtonSet.OK);
+    return;
+  }
+  
+  const commentsData = listComments();
+  const commentsAndContextToSummarize = commentsData.commentsString;
+  const commentCount = commentsData.count;
+
+  // 1. Dynamic Confirmation Dialog
+  if (!commentsAndContextToSummarize) {
+    ui.alert('No Comments Found', 'The document contains no comments. Nothing to summarize.', ui.ButtonSet.OK);
+    return;
+  }
+  
+  const confirmMessage = `Found ${commentCount} comments. Do you want to summarize them using Gemini AI? This may take a moment.`;
+  const userResponse = ui.alert('Confirm Summarization', confirmMessage, ui.ButtonSet.YES_NO);
+  if (userResponse !== ui.Button.YES) {
+    ui.alert('Action Cancelled', 'Comment summarization was cancelled.', ui.ButtonSet.OK);
+    return;
+  }
+  
+  // 2. Visualizing Progress (Simulated)
+  ui.alert('Processing...', 'Comments loaded. Sending to Gemini AI...', ui.ButtonSet.OK);
+  Utilities.sleep(1000); // Wait for a second to show the alert.
+  
+  const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
+  const promptText = `Summarize the following Google Docs comments, which are provided with their context. Extract key feedback, clearly identify action items, and highlight recurring themes. Format the summary as a list of bullet points. Do not use quotation marks around the summarized points. Be concise.\n\n${commentsAndContextToSummarize}`;
+
+  const headers = { "Content-Type": "application/json", "Accept": "application/json" };
+  const requestBody = { "contents": [{ "parts": [{ "text": promptText }] }] };
+  const options = { "method": "POST", "headers": headers, "payload": JSON.stringify(requestBody), "muteHttpExceptions": true };
+
+  ui.alert('Processing...', 'AI processing in progress...', ui.ButtonSet.OK);
+  
+  let summary = 'Failed to generate summary.';
+
+  try {
+    const geminiResponse = UrlFetchApp.fetch(endpoint, options);
+    const responseText = geminiResponse.getContentText();
+    const responseJson = JSON.parse(responseText);
+
+    Logger.log('Raw Gemini API Response:');
+    Logger.log(responseText);
+
+    if (responseJson.candidates && responseJson.candidates.length > 0) {
+      summary = responseJson.candidates[0].content.parts[0].text;
+      
+      // 3. Smart Summary Output Choices
+      if (summary.length > 500) {
+        const insertOption = ui.alert(
+          'Summary Ready (Long)',
+          'The generated summary is quite long. Would you like to insert it directly into the document?',
+          ui.ButtonSet.YES_NO
+        );
+        if (insertOption === ui.Button.YES) {
+          const doc = DocumentApp.getActiveDocument();
+          const body = doc.getBody();
+          body.insertParagraph(0, '--- AI Comment Summary (Powered by Gemini AI) ---'); // 5. Subtle Branding
+          body.insertParagraph(1, summary);
+          ui.alert('Summary Inserted', 'The AI-generated summary has been inserted at the top of your document.', ui.ButtonSet.OK);
+          return;
+        }
+      }
+      
+      // 5. Subtle Branding
+      ui.alert('Google Docs Comment Summary', summary + '\n\n---\nSummary generated by Gemini AI.', ui.ButtonSet.OK);
+
+    } else if (responseJson.error) {
+      // 4. Contextual Error Messages & Guidance
+      summary = `Gemini API Error: ${responseJson.error.message}`;
+      Logger.log(summary);
+      ui.alert('Gemini API Error', 'An error occurred with the Gemini API. This could be due to an invalid API key, exceeded quota, or a service issue. Please check the logs for more details.', ui.ButtonSet.OK);
+      return;
+    } else {
+      summary = 'Unexpected response format from Gemini.';
+      Logger.log('Unexpected Gemini response:', responseJson);
+      ui.alert('API Response Error', 'The response from Gemini was not in the expected format. Please check the logs.', ui.ButtonSet.OK);
+      return;
+    }
+  } catch (e) {
+    // 4. Contextual Error Messages & Guidance
+    summary = `An error occurred while calling the Gemini API: ${e.message}`;
+    Logger.log(`API Call Error: ${e.message}`);
+    ui.alert('Script Error', 'A network or internal script error occurred. Please check your internet connection and the Apps Script logs.', ui.ButtonSet.OK);
+    return;
+  }
+}
