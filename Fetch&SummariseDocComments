@@ -1,4 +1,4 @@
-const GEMINI_API_KEY = "AIzaSyCEptKeK84C9RbLNa9Vu9NVRw4bLXGzEcU";
+const GEMINI_API_KEY = "your_api_key";
 
 function onOpen() {
   const ui = DocumentApp.getUi();
